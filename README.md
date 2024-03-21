@@ -1,2 +1,2 @@
-# Arm-Projecy
+# AI-Arm
  
