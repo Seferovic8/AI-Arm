@@ -4,3 +4,4 @@ oob-best.pt
 Pytorch predict.ipynb
 Get Image labels.ipynb
 *.pt
+/App/obb-best_openvino_model

@@ -14,7 +14,9 @@ class Gripper:
     def __is_vibrating_thread(self):
         while True:
             with self.lock:
-                self.vibrating = bool(self.__read_data())
+                data= self.__read_data()
+                if data!=2:
+                    self.vibrating = bool(self.__read_data())
             time.sleep(0.1)  # Adjust sleep time as needed
 
     def __is_vibrating(self):
@@ -25,7 +27,7 @@ class Gripper:
         data = self.arduino.read().decode("utf-8")
         print(f"data: {data}")
         if data =='':
-            data=0
+            data=2
         return int(data)
     
     def last_check(self):
@@ -36,25 +38,30 @@ class Gripper:
     def close_gripper(self):
 
         self.arm.setPosition([[6,1500]],duration=300)
-        print(self.__is_vibrating())
+        duration=50
+        time_to_sleep=0.05
         for i in range(21):
             if self.__is_vibrating():
                 self.open_gripper(1500+(i*50))
                 break
-
-            self.arm.setPosition([[6,1500+(i*50)]],duration=300)
+            if(i<13):
+                duration=50
+                time_to_sleep=0.04
+            elif(i>13 and i<17):
+                duration=300
+                time_to_sleep=0.25
+            else:
+                duration=500
+                time_to_sleep=0.45
+            self.arm.setPosition([[6,1500+(i*50)]],duration=duration)
+            time.sleep(time_to_sleep)
             #print(i)
-            #if(i>13):
-            time.sleep(0.25)
-            if self.__is_vibrating():
-                self.open_gripper(1500+(i*50))
-                break
         self.last_check()
 
     def open_gripper(self,position):
         for i in range(41):
-            self.arm.setPosition([[6,position-(i*25)]],duration=300)
+            self.arm.setPosition([[6,position-(i*25)]])
             if not self.__is_vibrating():
-                time.sleep(0.2)
+                time.sleep(0.5)
                 if not self.__is_vibrating(): break
             time.sleep(0.25)

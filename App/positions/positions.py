@@ -5,7 +5,6 @@ import numpy as np
 class Positions:
     def __init__(self,model_path):
         self.arucoDetector = ArucoDetector()
-        print("poslo")
         self.YOLOPredictor =YOLOPredictor(model_path=model_path)
         self.positionCalculator =PositionCalculator(arucoDetector=self.arucoDetector,YOLOPredictor=self.YOLOPredictor)
     def find_positions(self):

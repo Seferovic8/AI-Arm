@@ -54,24 +54,30 @@ def finder(fk, i):
         raise Exception()
     return T3, T4
 
-def find_T2(T1,fk_true):
+def find_T2(T1,fk_true,follow):
 
     mse={}
-
-    for i in range(91):
+    k=91
+    close =180
+    if follow:
+        k=181 
+        close=90
+    for i in range(k):
         try:
+            if follow and i>90:
+                i=90-i
             T3, T4 = finder(fk_true, i)
             fk =forward_kinematics(T1,i,T3,T4)[:3,3]
-            if (np.array_equal(fk_true,fk) and np.isclose(180,(i+T3+T4),atol=5)):
+            if (np.array_equal(fk_true,fk) and np.isclose(close,(i+T3+T4),atol=5)):
                 return i, T3, T4
-            mse[i]=[mean_absolute_error(np.append(fk_true,180),np.append(fk,i+T3+T4)),T3,T4]
+            mse[i]=[mean_absolute_error(np.append(fk_true,close),np.append(fk,i+T3+T4)),T3,T4]
         except:
             pass
     else:
         T2 =min(mse,key=mse.get)
         T3, T4 = mse[T2][1:]
         return T2,T3,T4
-def calculate_inverse_kinematics(fk):
+def calculate_inverse_kinematics(fk,follow=False):
     dx,dy,dz=fk
     #if(np.sqrt(dx**2+dy**2)-dz<64):
        # raise Exception("It was entered lower value than arm can reach")
@@ -83,9 +89,6 @@ def calculate_inverse_kinematics(fk):
         T1=np.degrees(-T1)
         T1=np.round(T1)
     #Find T3
-    T2, T3, T4=find_T2(T1,fk)
-    eT2=(90-T2)
-    eT3=(90-T3)+eT2
-    eT4=(90-T4)+eT3
+    T2, T3, T4=find_T2(T1,fk,follow=follow)
    # print(T2+T3+T4)
     return float(T1), float(T2), float(T3), float(T4)

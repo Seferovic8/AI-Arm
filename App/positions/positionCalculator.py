@@ -10,7 +10,9 @@ class PositionCalculator:
         self.predDetails = np.array([])
         self.arucoDetector=arucoDetector
         self.YOLOPredictor=YOLOPredictor
-
+    def __does_exist(self,class_num):
+        if class_num in self.predDetails[:,0,0]:return True
+        return False
     def __get_center(self,class_num):
         return self.predDetails[self.predDetails[:,0,0]==class_num][0,1]
     def __get_angle(self,class_num):
@@ -20,17 +22,20 @@ class PositionCalculator:
         if(c<130):
             return 8
         if c<=160:
-            return 8+(2/30)*(c-130)
-        if c<=190:
-            return 10+(4/30)*(c-160)
+            return 6+(2/30)*(c-130)
+        if c<=190: 
+            return 6+(4/30)*(c-160)
         if c<=220:
-            return 14+(6/30)*(c-190)
+            return 8+(6/30)*(c-190)
         if c<=250:
-            return 20+(5/30)*(c-220)
+            return 15+(5/30)*(c-220)
         if c>=250:
-            return 25+(7/20)*(c-250)
+            return 20+(7/20)*(c-250)
         
     def get_cordinates(self,class_num):
+        if not self.__does_exist(class_num):
+            print("Ne postoji taj element")
+            return False
         center = self.__get_center(class_num)
         x=(center[1]-self.arucoDetector.markerDetails[0][0,1])*(self.line1_lenght/self.arucoDetector.line1)-self.x_zero
         y=(self.arucoDetector.markerDetails[1][0,0]-center[0])*(self.line2_lenght/self.arucoDetector.line2)-self.y_zero
@@ -69,6 +74,7 @@ class PositionCalculator:
         else:
             return -pred_angle
     def get_positions(self,img):
+        self.predDetails = np.array([])
         for pred in self.YOLOPredictor.predict(img):
             center, size, pred_angle = cv2.minAreaRect(pred[2:].reshape(-1,1,2))
             angle=self.calculate_angle(pred,pred_angle)
