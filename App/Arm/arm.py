@@ -1,7 +1,7 @@
 import xarm
 import time
 from Hands.hand import HandDetector
-import datetime
+from .serialCommunication import SerialCommunication
 import numpy as np
 from .gripper import Gripper
 from Kinematics.inverse_kinematics import calculate_inverse_kinematics as ik
@@ -9,8 +9,9 @@ from Kinematics.forward_kinematics import forward_kinematics as fk
 class Arm:
     def __init__(self, com, serialcom):
         self.arm = xarm.Controller(com)
-        self.gripper=Gripper(self.arm,serialcom)
-        self.handDetector= HandDetector(imgUrl="http://192.168.1.10:8080/shot.jpg",wsUrl="ws://localhost:8765")
+        self.serial = SerialCommunication(serialcom)
+        self.gripper=Gripper(self.arm,self.serial)
+        self.handDetector= HandDetector(imgUrl="http://192.168.1.10:8080/shot.jpg",wsUrl="ws://localhost:80")
 
         self.moveToDefault()
     def __calculateT5(self,T1,angle,follow=False):

@@ -1,16 +1,11 @@
-import requests 
 import cv2 
-import numpy as np 
-import imutils 
-import websocket
-import base64
+from .communication import Communication
 import mediapipe as mp
-import json
+
 class HandDetector():
     def __init__(self,imgUrl,wsUrl,mode=False,maxHands=1,modelComplexity=1,detectionCon=0.7,trackCon = 0.7):
         self.mode = mode
-        self.imgUrl = imgUrl
-        #self.wsUrl = wsUrl
+        self.communication = Communication(imgUrl,wsUrl)
         self.maxHands = maxHands
         self.modelComplex = modelComplexity
         self.detectionCon = detectionCon
@@ -19,7 +14,6 @@ class HandDetector():
         self.hands = self.mpHands.Hands(self.mode,self.maxHands,self.modelComplex,self.detectionCon,self.trackCon)
         self.hands2 = self.mpHands.Hands(self.mode,2,self.modelComplex,self.detectionCon,self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils
-        self.ws = websocket.create_connection(wsUrl)
         self.i = 0
         self.palmStatus = False
         self.closeStatus = False
@@ -29,23 +23,8 @@ class HandDetector():
         self.palmStatus=False
         self.closeStatus = False
 
-    def __base64_encode_img(self,frame):
-        _, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
-        frame_base64 = base64.b64encode(frame_bytes).decode('utf-8')
-        return frame_base64
-    
-    def getImage(self):
-        img_resp = requests.get(self.imgUrl) 
-        img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8) 
-        img = cv2.imdecode(img_arr, -1) 
-        img = imutils.resize(img, width=1000, height=1800) 
-        return img
-    def sendToWS(self,img,isOpen):
-        self.ws.send(json.dumps({"img":self.__base64_encode_img(img),"isOpen": isOpen}))
-
     def findHands(self,draw=True):
-        img=self.getImage()
+        img=self.communication.getImage()
         img = cv2.flip(img,1)
         imgRGB = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         if not self.closeStatus:
@@ -105,7 +84,7 @@ class HandDetector():
             x,y = self.findHandCordinates(myHand,img)
             isHandOpen = self.is_hand_open()
             handStatus=isHandOpen
-            self.sendToWS(img,isHandOpen)
+            self.communication.sendToWS(img,isHandOpen)
             if isHandOpen!=self.palmStatus:
                 self.i+=1
                 self.palmStatus=isHandOpen
@@ -132,5 +111,5 @@ class HandDetector():
                         self.work = False
             return x,y,handStatus
         else:
-            self.sendToWS(img,False)
+            self.communication.sendToWS(img,False)
             return None,None,None

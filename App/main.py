@@ -1,5 +1,6 @@
 from positions.positions import Positions
 from Arm.arm import Arm
+from Arm.serialCommunication import Errors
 from SpeechRecognition.speechRecognition import SpeechRecognition
 from flask import Flask,Response,request,jsonify
 import base64
@@ -33,11 +34,17 @@ def do_function(doPred,objectPred):
     # Your function code here
     position.find_positions()
     cordinates = position.get_cordinates(objectPred)
-    if cordinates==False: return
-    arm.moveToPosition(*cordinates)
+    if cordinates==False: 
+        arm.serial.send_error(Errors.ObjectDoesNotExist)
+        return
     if(doPred==False):
+        arm.moveToPosition(*cordinates)
         arm.unload()
     else:
+        if not arm.handDetector.communication.isHostAlive():
+            arm.serial.send_error(Errors.HandCameraNotAvailable)
+            raise Exception("Host nije aktivan")
+        arm.moveToPosition(*cordinates)
         arm.follow()
 @app.route('/send_audio',methods=["POST"])
 def get_audio():

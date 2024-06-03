@@ -1,11 +1,9 @@
-import serial
 import time
 import threading
 class Gripper:
-    def __init__(self,arm,com):
+    def __init__(self,arm,serial):
         self.arm = arm
-        self.arduino = serial.Serial(com, 9600, timeout=1)
-        self.arduino.read()
+        self.arduino = serial
         self.vibrating = False  # Shared variable to indicate vibration status
         self.lock = threading.Lock()  # Lock to ensure safe access to shared variable
         self.is_vibrating_thread = threading.Thread(target=self.__is_vibrating_thread, daemon=True)
@@ -14,21 +12,15 @@ class Gripper:
     def __is_vibrating_thread(self):
         while True:
             with self.lock:
-                data= self.__read_data()
+                data= self.arduino.read_data()
                 if data!=2:
-                    self.vibrating = bool(self.__read_data())
+                    self.vibrating = bool(self.arduino.read_data())
             time.sleep(0.1)  # Adjust sleep time as needed
 
     def __is_vibrating(self):
         with self.lock:
             return self.vibrating
-        
-    def __read_data(self):
-        data = self.arduino.read().decode("utf-8")
-        print(f"data: {data}")
-        if data =='':
-            data=2
-        return int(data)
+    
     
     def last_check(self):
         time.sleep(1)
