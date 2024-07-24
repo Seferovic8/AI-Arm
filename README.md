@@ -71,9 +71,3 @@ AI-Arm helps individuals with disabilities by performing everyday tasks, thereby
 <img src="./media/arm4.jpg" alt="Image 1" width="400" height="">
  &emsp;&emsp;&emsp;
 <img src="./media/arm2.jpg" alt="Image 1" width="400" height="">
-
-## ▶️ Video demonstration
-<video width="640" height="480" controls autoplay loop>
-  <source src="./media/video.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
